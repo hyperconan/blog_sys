@@ -3,9 +3,9 @@ package logic
 import (
 	"context"
 
+	"gateway/commentclient"
 	"gateway/internal/svc"
 	"gateway/internal/types"
-	"gateway/commentclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,7 +25,6 @@ func NewGetCommentsByPostIDLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *GetCommentsByPostIDLogic) GetCommentsByPostID(req *types.GetCommentsRequest) (resp *types.GetCommentsResponse, err error) {
-	// Call comment service
 	result, err := l.svcCtx.CommentRpc.GetCommentsByPostID(l.ctx, &commentclient.GetCommentsByPostIDRequest{
 		PostId: req.PostId,
 	})
@@ -33,7 +32,6 @@ func (l *GetCommentsByPostIDLogic) GetCommentsByPostID(req *types.GetCommentsReq
 		return nil, err
 	}
 
-	// Convert response
 	comments := make([]types.CommentInfo, len(result.Comments))
 	for i, comment := range result.Comments {
 		comments[i] = types.CommentInfo{
