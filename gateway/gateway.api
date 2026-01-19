@@ -1,0 +1,110 @@
+type (
+	RegisterRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+
+	RegisterResponse {
+		Message string `json:"message"`
+	}
+
+	LoginRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	LoginResponse {
+		Token string `json:"token"`
+	}
+
+	CreatePostRequest {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+
+	CreatePostResponse {
+		PostId uint32 `json:"post_id"`
+	}
+
+	GetPostsResponse {
+		Posts []PostInfo `json:"posts"`
+	}
+
+	PostInfo {
+		Id       uint32 `json:"id"`
+		Title    string `json:"title"`
+		UserId   uint32 `json:"user_id"`
+		CreateAt string `json:"create_at"`
+		UpdateAt string `json:"update_at"`
+	}
+
+	UpdatePostRequest {
+		PostId  uint32 `path:"post_id"`
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+
+	UpdatePostResponse {
+		Message string `json:"message"`
+	}
+
+	DeletePostRequest {
+		PostId uint32 `path:"post_id"`
+	}
+
+	DeletePostResponse {
+		Message string `json:"message"`
+	}
+
+	CreateCommentRequest {
+		PostId  uint32 `json:"post_id"`
+		Content string `json:"content"`
+	}
+
+	CreateCommentResponse {
+		CommentId uint32 `json:"comment_id"`
+	}
+
+	GetCommentsRequest {
+		PostId uint32 `path:"post_id"`
+	}
+
+	GetCommentsResponse {
+		Comments []CommentInfo `json:"comments"`
+	}
+
+	CommentInfo {
+		Id       uint32 `json:"id"`
+		Content  string `json:"content"`
+		UserId   uint32 `json:"user_id"`
+		PostId   uint32 `json:"post_id"`
+		CreateAt string `json:"create_at"`
+	}
+)
+
+service gateway-api {
+	@handler UserRegister
+	post /user/register (RegisterRequest) returns (RegisterResponse)
+
+	@handler UserLogin
+	post /user/login (LoginRequest) returns (LoginResponse)
+
+	@handler CreatePost
+	post /blog (CreatePostRequest) returns (CreatePostResponse)
+
+	@handler GetAllPosts
+	get /blog/all returns (GetPostsResponse)
+
+	@handler UpdatePost
+	put /blog/:post_id (UpdatePostRequest) returns (UpdatePostResponse)
+
+	@handler DeletePost
+	delete /blog/:post_id (DeletePostRequest) returns (DeletePostResponse)
+
+	@handler CreateComment
+	post /blog/comment (CreateCommentRequest) returns (CreateCommentResponse)
+
+	@handler GetCommentsByPostID
+	get /blog/comment/:post_id returns (GetCommentsResponse)
+}
