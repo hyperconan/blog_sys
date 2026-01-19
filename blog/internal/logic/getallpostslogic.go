@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"blog/internal/models"
 	"blog/internal/svc"
 	"blog/pb/blog"
 
@@ -24,8 +25,10 @@ func NewGetAllPostsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetAl
 }
 
 func (l *GetAllPostsLogic) GetAllPosts(in *blog.GetAllPostsRequest) (*blog.GetAllPostsResponse, error) {
-	postsMu.RLock()
-	defer postsMu.RUnlock()
+	var posts []models.Post
+	if err := l.svcCtx.DB.Order("created_at desc").Find(&posts).Error; err != nil {
+		return nil, err
+	}
 
 	var postInfos []*blog.PostInfo
 	for _, post := range posts {

@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"comment/internal/models"
 	"comment/internal/svc"
 	"comment/pb/comment"
 
@@ -24,20 +25,20 @@ func NewGetCommentsByPostIDLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *GetCommentsByPostIDLogic) GetCommentsByPostID(in *comment.GetCommentsByPostIDRequest) (*comment.GetCommentsByPostIDResponse, error) {
-	commentsMu.RLock()
-	defer commentsMu.RUnlock()
+	var comments []models.Comment
+	if err := l.svcCtx.DB.Where("post_id = ?", in.PostId).Order("created_at desc").Find(&comments).Error; err != nil {
+		return nil, err
+	}
 
 	var commentInfos []*comment.CommentInfo
 	for _, c := range comments {
-		if c.PostID == in.PostId {
-			commentInfos = append(commentInfos, &comment.CommentInfo{
-				Id:        c.ID,
-				Content:   c.Content,
-				UserId:    c.UserID,
-				PostId:    c.PostID,
-				CreatedAt: c.CreatedAt.Format("2006-01-02 15:04:05"),
-			})
-		}
+		commentInfos = append(commentInfos, &comment.CommentInfo{
+			Id:        c.ID,
+			Content:   c.Content,
+			UserId:    c.UserID,
+			PostId:    c.PostID,
+			CreatedAt: c.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
 	}
 
 	return &comment.GetCommentsByPostIDResponse{

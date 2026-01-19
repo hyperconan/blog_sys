@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"blog/internal/models"
 	"blog/internal/svc"
 	"blog/pb/blog"
 
@@ -25,11 +26,8 @@ func NewGetPostDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 }
 
 func (l *GetPostDetailLogic) GetPostDetail(in *blog.GetPostDetailRequest) (*blog.GetPostDetailResponse, error) {
-	postsMu.RLock()
-	defer postsMu.RUnlock()
-
-	post, exists := posts[in.PostId]
-	if !exists {
+	var post models.Post
+	if err := l.svcCtx.DB.First(&post, in.PostId).Error; err != nil {
 		return nil, errors.New("post not found")
 	}
 

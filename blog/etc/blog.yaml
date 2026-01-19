@@ -5,3 +5,6 @@ Etcd:
   Hosts:
     - 127.0.0.1:2379
   Key: blog.rpc
+
+Database:
+  DSN: "root:123456@tcp(localhost:13306)/blog_sys?charset=utf8mb4&parseTime=True&loc=Local"

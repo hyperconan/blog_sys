@@ -2,29 +2,13 @@ package logic
 
 import (
 	"context"
-	"sync"
-	"time"
 
+	"comment/internal/models"
 	"comment/internal/svc"
 	"comment/pb/comment"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
-
-// Simple in-memory comment storage
-var (
-	comments   = make(map[uint32]*Comment)
-	commentsMu sync.RWMutex
-	commentID  uint32 = 1
-)
-
-type Comment struct {
-	ID        uint32
-	Content   string
-	UserID    uint32
-	PostID    uint32
-	CreatedAt time.Time
-}
 
 type CreateCommentLogic struct {
 	ctx    context.Context
@@ -41,20 +25,17 @@ func NewCreateCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cre
 }
 
 func (l *CreateCommentLogic) CreateComment(in *comment.CreateCommentRequest) (*comment.CreateCommentResponse, error) {
-	commentsMu.Lock()
-	defer commentsMu.Unlock()
-
-	newComment := &Comment{
-		ID:        commentID,
-		Content:   in.Content,
-		UserID:    in.UserId,
-		PostID:    in.PostId,
-		CreatedAt: time.Now(),
+	newComment := &models.Comment{
+		Content: in.Content,
+		UserID:  in.UserId,
+		PostID:  in.PostId,
 	}
-	comments[commentID] = newComment
-	commentID++
+
+	if err := l.svcCtx.DB.Create(newComment).Error; err != nil {
+		return nil, err
+	}
 
 	return &comment.CreateCommentResponse{
-		CommentId: commentID - 1,
+		CommentId: newComment.ID,
 	}, nil
 }

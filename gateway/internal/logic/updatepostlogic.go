@@ -3,9 +3,10 @@ package logic
 import (
 	"context"
 
+	"gateway/blogclient"
+	"gateway/internal/middleware"
 	"gateway/internal/svc"
 	"gateway/internal/types"
-	"gateway/blogclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,10 +26,11 @@ func NewUpdatePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdatePostLogic) UpdatePost(req *types.UpdatePostRequest) (resp *types.UpdatePostResponse, err error) {
-	// TODO: Get user ID from JWT token
-	userId := uint32(1) // Mock user ID, should get from JWT
+	userId, err := middleware.GetUserIdFromContext(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	// Call blog service
 	_, err = l.svcCtx.BlogRpc.UpdatePost(l.ctx, &blogclient.UpdatePostRequest{
 		PostId:  req.PostId,
 		UserId:  userId,

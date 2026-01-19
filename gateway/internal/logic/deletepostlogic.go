@@ -3,9 +3,10 @@ package logic
 import (
 	"context"
 
+	"gateway/blogclient"
+	"gateway/internal/middleware"
 	"gateway/internal/svc"
 	"gateway/internal/types"
-	"gateway/blogclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,10 +26,11 @@ func NewDeletePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeletePostLogic) DeletePost(req *types.DeletePostRequest) (resp *types.DeletePostResponse, err error) {
-	// TODO: Get user ID from JWT token
-	userId := uint32(1) // Mock user ID, should get from JWT
+	userId, err := middleware.GetUserIdFromContext(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	// Call blog service
 	_, err = l.svcCtx.BlogRpc.DeletePost(l.ctx, &blogclient.DeletePostRequest{
 		PostId: req.PostId,
 		UserId: userId,

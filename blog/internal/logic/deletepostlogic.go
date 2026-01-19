@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"blog/internal/models"
 	"blog/internal/svc"
 	"blog/pb/blog"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type DeletePostLogic struct {
@@ -25,19 +27,21 @@ func NewDeletePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeletePostLogic) DeletePost(in *blog.DeletePostRequest) (*blog.DeletePostResponse, error) {
-	postsMu.Lock()
-	defer postsMu.Unlock()
-
-	post, exists := posts[in.PostId]
-	if !exists {
-		return nil, errors.New("post not found")
+	var post models.Post
+	if err := l.svcCtx.DB.First(&post, in.PostId).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.New("post not found")
+		}
+		return nil, err
 	}
 
 	if post.UserID != in.UserId {
 		return nil, errors.New("unauthorized")
 	}
 
-	delete(posts, in.PostId)
+	if err := l.svcCtx.DB.Delete(&post).Error; err != nil {
+		return nil, err
+	}
 
 	return &blog.DeletePostResponse{
 		Message: "Post deleted successfully",

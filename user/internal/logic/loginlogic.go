@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"user/internal/models"
 	"user/internal/svc"
 	userpb "user/pb/user"
 
@@ -28,11 +29,8 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(in *userpb.LoginRequest) (*userpb.LoginResponse, error) {
-	usersMu.RLock()
-	user, exists := users[in.Username]
-	usersMu.RUnlock()
-
-	if !exists {
+	var user models.User
+	if err := l.svcCtx.DB.Where("username = ?", in.Username).First(&user).Error; err != nil {
 		return nil, errors.New("invalid username or password")
 	}
 

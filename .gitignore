@@ -1,4 +1,4 @@
 blog/blog-server
 comment/comment-server
-gateway/gateway
+gateway/gateway-server
 user/user-server

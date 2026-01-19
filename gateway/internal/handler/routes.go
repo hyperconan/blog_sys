@@ -3,12 +3,16 @@ package handler
 import (
 	"net/http"
 
+	"gateway/internal/middleware"
 	"gateway/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	// JWT middleware
+	jwtMiddleware := middleware.NewJwtMiddleware("hyperconan")
+
 	server.AddRoutes(
 		[]rest.Route{
 			{
@@ -24,7 +28,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			{
 				Method:  http.MethodPost,
 				Path:    "/blog",
-				Handler: CreatePostHandler(serverCtx),
+				Handler: jwtMiddleware.Handle(CreatePostHandler(serverCtx)),
 			},
 			{
 				Method:  http.MethodGet,
@@ -34,17 +38,17 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			{
 				Method:  http.MethodPut,
 				Path:    "/blog/:post_id",
-				Handler: UpdatePostHandler(serverCtx),
+				Handler: jwtMiddleware.Handle(UpdatePostHandler(serverCtx)),
 			},
 			{
 				Method:  http.MethodDelete,
 				Path:    "/blog/:post_id",
-				Handler: DeletePostHandler(serverCtx),
+				Handler: jwtMiddleware.Handle(DeletePostHandler(serverCtx)),
 			},
 			{
 				Method:  http.MethodPost,
 				Path:    "/blog/comment",
-				Handler: CreateCommentHandler(serverCtx),
+				Handler: jwtMiddleware.Handle(CreateCommentHandler(serverCtx)),
 			},
 			{
 				Method:  http.MethodGet,

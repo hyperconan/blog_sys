@@ -3,9 +3,10 @@ package logic
 import (
 	"context"
 
+	"gateway/commentclient"
+	"gateway/internal/middleware"
 	"gateway/internal/svc"
 	"gateway/internal/types"
-	"gateway/commentclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,10 +26,11 @@ func NewCreateCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cre
 }
 
 func (l *CreateCommentLogic) CreateComment(req *types.CreateCommentRequest) (resp *types.CreateCommentResponse, err error) {
-	// TODO: Get user ID from JWT token
-	userId := uint32(1) // Mock user ID, should get from JWT
+	userId, err := middleware.GetUserIdFromContext(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	// Call comment service
 	result, err := l.svcCtx.CommentRpc.CreateComment(l.ctx, &commentclient.CreateCommentRequest{
 		Content: req.Content,
 		UserId:  userId,

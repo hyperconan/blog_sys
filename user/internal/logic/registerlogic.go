@@ -3,28 +3,14 @@ package logic
 import (
 	"context"
 	"errors"
-	"sync"
 
+	"user/internal/models"
 	"user/internal/svc"
 	userpb "user/pb/user"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// Simple in-memory user storage
-var (
-	users   = make(map[string]*User)
-	usersMu sync.RWMutex
-	userID  uint32 = 1
-)
-
-type User struct {
-	ID       uint32
-	Username string
-	Password string
-	Email    string
-}
 
 type RegisterLogic struct {
 	ctx    context.Context
@@ -41,19 +27,15 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(in *userpb.RegisterRequest) (*userpb.RegisterResponse, error) {
-	usersMu.Lock()
-	defer usersMu.Unlock()
-
 	// Check if username already exists
-	if _, exists := users[in.Username]; exists {
+	var existingUser models.User
+	if err := l.svcCtx.DB.Where("username = ?", in.Username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("username already exists")
 	}
 
 	// Check if email already exists
-	for _, u := range users {
-		if u.Email == in.Email {
-			return nil, errors.New("email already exists")
-		}
+	if err := l.svcCtx.DB.Where("email = ?", in.Email).First(&existingUser).Error; err == nil {
+		return nil, errors.New("email already exists")
 	}
 
 	// Hash password
@@ -63,14 +45,15 @@ func (l *RegisterLogic) Register(in *userpb.RegisterRequest) (*userpb.RegisterRe
 	}
 
 	// Create user
-	newUser := &User{
-		ID:       userID,
+	newUser := &models.User{
 		Username: in.Username,
 		Password: string(hashedPassword),
 		Email:    in.Email,
 	}
-	users[in.Username] = newUser
-	userID++
+
+	if err := l.svcCtx.DB.Create(newUser).Error; err != nil {
+		return nil, err
+	}
 
 	return &userpb.RegisterResponse{
 		Message: "User registered successfully",
