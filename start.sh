@@ -4,14 +4,34 @@
 
 echo "Starting Blog Microservices System..."
 
-# Check if etcd is running
-if ! pgrep -x "etcd" > /dev/null; then
-    echo "Error: ETCD is not running. Please start ETCD first:"
+# Check if etcd is running or port 2379 is accessible (using OR condition)
+ETCD_RUNNING=false
+ETCD_PORT_ACCESSIBLE=false
+
+# Check if etcd process is running
+if pgrep -x "etcd" > /dev/null; then
+    ETCD_RUNNING=true
+fi
+
+# Check if etcd port 2379 is accessible
+if nc -z localhost 2379 > /dev/null 2>&1; then
+    ETCD_PORT_ACCESSIBLE=true
+fi
+
+# If neither etcd process is running nor port 2379 is accessible, exit with error
+if ! $ETCD_RUNNING && ! $ETCD_PORT_ACCESSIBLE; then
+    echo "Error: ETCD is not running and port 2379 is not accessible. Please start ETCD first:"
     echo "  etcd"
     exit 1
 fi
 
-echo "ETCD is running ✓"
+# Show status
+if $ETCD_RUNNING; then
+    echo "ETCD is running ✓"
+fi
+if $ETCD_PORT_ACCESSIBLE; then
+    echo "ETCD port 2379 is accessible ✓"
+fi
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
